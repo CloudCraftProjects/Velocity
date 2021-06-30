@@ -68,6 +68,13 @@ public interface TabList {
   Collection<TabListEntry> getEntries();
 
   /**
+   * Returns an optional {@link TabListEntry} of the given {@link UUID}.
+   * @param uuid the uuid of the wanted entry
+   * @return the optional entry
+   */
+  Optional<TabListEntry> getEntry(UUID uuid);
+
+  /**
    * Builds a tab list entry.
    *
    * @deprecated Internal usage. Use {@link TabListEntry.Builder} instead.

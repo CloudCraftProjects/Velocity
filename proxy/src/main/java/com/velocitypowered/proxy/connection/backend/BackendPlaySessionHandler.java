@@ -212,7 +212,7 @@ public class BackendPlaySessionHandler implements MinecraftSessionHandler {
   @Override
   public boolean handle(PlayerListItem packet) {
     serverConn.getPlayer().getTabList().processBackendPacket(packet);
-    return false; //Forward packet to player
+    return true; // Don't forward packet to player
   }
 
   @Override

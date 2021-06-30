@@ -18,6 +18,7 @@
 package com.velocitypowered.proxy.tablist;
 
 import com.google.common.base.Preconditions;
+import com.velocitypowered.api.event.player.TabListUpdateEvent;
 import com.velocitypowered.api.proxy.player.TabList;
 import com.velocitypowered.api.proxy.player.TabListEntry;
 import com.velocitypowered.api.util.GameProfile;
@@ -120,6 +121,11 @@ public class VelocityTabList implements TabList {
   }
 
   @Override
+  public Optional<TabListEntry> getEntry(UUID uuid) {
+    return Optional.ofNullable(entries.get(uuid));
+  }
+
+  @Override
   public TabListEntry buildEntry(GameProfile profile,
       net.kyori.adventure.text.@Nullable Component displayName, int latency, int gameMode) {
     return new VelocityTabListEntry(this, profile, displayName, latency, gameMode);
@@ -131,7 +137,8 @@ public class VelocityTabList implements TabList {
    * @param packet the packet to process
    */
   public void processBackendPacket(PlayerListItem packet) {
-    // Packets are already forwarded on, so no need to do that here
+    List<PlayerListItem.Item> items = new ArrayList<>(packet.getItems());
+
     for (PlayerListItem.Item item : packet.getItems()) {
       UUID uuid = item.getUuid();
       assert uuid != null : "1.7 tab list entry given to modern tab list handler!";
@@ -141,52 +148,63 @@ public class VelocityTabList implements TabList {
         continue;
       }
 
-      switch (packet.getAction()) {
-        case PlayerListItem.ADD_PLAYER: {
-          // ensure that name and properties are available
-          String name = item.getName();
-          List<GameProfile.Property> properties = item.getProperties();
-          if (name == null || properties == null) {
-            throw new IllegalStateException("Got null game profile for ADD_PLAYER");
+      TabListUpdateEvent.TabListAction action = TabListUpdateEvent.TabListAction.byId(packet.getAction());
+      TabListUpdateEvent tabListUpdateEvent = new TabListUpdateEvent(uuid, player, action);
+      tabListUpdateEvent = player.getServer().getEventManager().fire(tabListUpdateEvent).join();
+
+      if (tabListUpdateEvent.getResult().isAllowed()) {
+        switch (packet.getAction()) {
+          case PlayerListItem.ADD_PLAYER: {
+            // ensure that name and properties are available
+            String name = item.getName();
+            List<GameProfile.Property> properties = item.getProperties();
+            if (name == null || properties == null) {
+              throw new IllegalStateException("Got null game profile for ADD_PLAYER");
+            }
+            entries.put(item.getUuid(), (VelocityTabListEntry) TabListEntry.builder()
+                .tabList(this)
+                .profile(new GameProfile(uuid, name, properties))
+                .displayName(item.getDisplayName())
+                .latency(item.getLatency())
+                .gameMode(item.getGameMode())
+                .build());
+            break;
           }
-          entries.put(item.getUuid(), (VelocityTabListEntry) TabListEntry.builder()
-              .tabList(this)
-              .profile(new GameProfile(uuid, name, properties))
-              .displayName(item.getDisplayName())
-              .latency(item.getLatency())
-              .gameMode(item.getGameMode())
-              .build());
-          break;
-        }
-        case PlayerListItem.REMOVE_PLAYER:
-          entries.remove(uuid);
-          break;
-        case PlayerListItem.UPDATE_DISPLAY_NAME: {
-          VelocityTabListEntry entry = entries.get(uuid);
-          if (entry != null) {
-            entry.setDisplayNameInternal(item.getDisplayName());
+          case PlayerListItem.REMOVE_PLAYER:
+            entries.remove(uuid);
+            break;
+          case PlayerListItem.UPDATE_DISPLAY_NAME: {
+            VelocityTabListEntry entry = entries.get(uuid);
+            if (entry != null) {
+              entry.setDisplayNameInternal(item.getDisplayName());
+            }
+            break;
           }
-          break;
-        }
-        case PlayerListItem.UPDATE_LATENCY: {
-          VelocityTabListEntry entry = entries.get(uuid);
-          if (entry != null) {
-            entry.setLatencyInternal(item.getLatency());
+          case PlayerListItem.UPDATE_LATENCY: {
+            VelocityTabListEntry entry = entries.get(uuid);
+            if (entry != null) {
+              entry.setLatencyInternal(item.getLatency());
+            }
+            break;
           }
-          break;
-        }
-        case PlayerListItem.UPDATE_GAMEMODE: {
-          VelocityTabListEntry entry = entries.get(uuid);
-          if (entry != null) {
-            entry.setGameModeInternal(item.getGameMode());
+          case PlayerListItem.UPDATE_GAMEMODE: {
+            VelocityTabListEntry entry = entries.get(uuid);
+            if (entry != null) {
+              entry.setGameModeInternal(item.getGameMode());
+            }
+            break;
           }
-          break;
+          default:
+            // Nothing we can do here
+            break;
         }
-        default:
-          // Nothing we can do here
-          break;
+      } else {
+        items.remove(item);
       }
     }
+
+    // Packets wasn't forwarded, so need to do that here
+    connection.write(new PlayerListItem(packet.getAction(), items));
   }
 
   void updateEntry(int action, TabListEntry entry) {

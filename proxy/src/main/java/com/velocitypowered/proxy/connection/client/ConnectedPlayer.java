@@ -168,6 +168,10 @@ public class ConnectedPlayer implements MinecraftConnectionAssociation, Player {
     }
   }
 
+  public VelocityServer getServer() {
+    return server;
+  }
+
   @Override
   public @NonNull Identity identity() {
     return this.identity;
