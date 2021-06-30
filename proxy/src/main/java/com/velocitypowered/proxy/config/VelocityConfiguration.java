@@ -60,6 +60,7 @@ public class VelocityConfiguration implements ProxyConfig {
 
   @Expose private String bind = "0.0.0.0:25577";
   @Expose private String motd = "&3A Velocity Server";
+  @Expose private String software = "Velocity";
   @Expose private int showMaxPlayers = 500;
   @Expose private boolean onlineMode = true;
   @Expose private boolean preventClientProxyConnections = false;
@@ -85,13 +86,14 @@ public class VelocityConfiguration implements ProxyConfig {
     this.metrics = metrics;
   }
 
-  private VelocityConfiguration(String bind, String motd, int showMaxPlayers, boolean onlineMode,
+  private VelocityConfiguration(String bind, String motd, String software, int showMaxPlayers, boolean onlineMode,
       boolean preventClientProxyConnections, boolean announceForge,
       PlayerInfoForwarding playerInfoForwardingMode, byte[] forwardingSecret,
       boolean onlineModeKickExistingPlayers, PingPassthroughMode pingPassthrough, Servers servers,
       ForcedHosts forcedHosts, Advanced advanced, Query query, Metrics metrics) {
     this.bind = bind;
     this.motd = motd;
+    this.software = software;
     this.showMaxPlayers = showMaxPlayers;
     this.onlineMode = onlineMode;
     this.preventClientProxyConnections = preventClientProxyConnections;
@@ -335,6 +337,11 @@ public class VelocityConfiguration implements ProxyConfig {
     return advanced.getReadTimeout();
   }
 
+  @Override
+  public String getSoftware() {
+    return software;
+  }
+
   public boolean isProxyProtocol() {
     return advanced.isProxyProtocol();
   }
@@ -451,6 +458,7 @@ public class VelocityConfiguration implements ProxyConfig {
 
     String bind = config.getOrElse("bind", "0.0.0.0:25577");
     String motd = config.getOrElse("motd", "&#09add3A Velocity Server");
+    String software = config.getOrElse("software", "Velocity");
     int maxPlayers = config.getIntOrElse("show-max-players", 500);
     Boolean onlineMode = config.getOrElse("online-mode", true);
     Boolean announceForge = config.getOrElse("announce-forge", true);
@@ -461,6 +469,7 @@ public class VelocityConfiguration implements ProxyConfig {
     return new VelocityConfiguration(
         bind,
         motd,
+        software,
         maxPlayers,
         onlineMode,
         preventClientProxyConnections,

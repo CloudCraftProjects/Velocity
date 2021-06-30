@@ -148,4 +148,11 @@ public interface ProxyConfig {
    * @return read timeout (in milliseconds)
    */
   int getReadTimeout();
+
+  /**
+   * Get the software which is configured to be displayed on pings.
+   *
+   * @return the software displayed on pings
+   */
+  String getSoftware();
 }

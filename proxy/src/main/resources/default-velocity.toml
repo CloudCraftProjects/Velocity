@@ -8,6 +8,10 @@ bind = "0.0.0.0:25577"
 # their server list. Legacy color codes and JSON are accepted.
 motd = "&#09add3A Velocity Server"
 
+# What should be displayed as the software? This gets displayed when the player is not
+# on the correct version. The supported versions will be appended.
+software = "Velocity"
+
 # What should we display for the maximum number of players? (Velocity does not support a cap
 # on the number of players online.)
 show-max-players = 500
