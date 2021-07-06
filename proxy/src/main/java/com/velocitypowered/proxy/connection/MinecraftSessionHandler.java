@@ -46,6 +46,11 @@ import com.velocitypowered.proxy.protocol.packet.StatusRequest;
 import com.velocitypowered.proxy.protocol.packet.StatusResponse;
 import com.velocitypowered.proxy.protocol.packet.TabCompleteRequest;
 import com.velocitypowered.proxy.protocol.packet.TabCompleteResponse;
+import com.velocitypowered.proxy.protocol.packet.teams.AddEntitiesToTeamPacket;
+import com.velocitypowered.proxy.protocol.packet.teams.CreateTeamPacket;
+import com.velocitypowered.proxy.protocol.packet.teams.RemoveEntitiesFromTeamPacket;
+import com.velocitypowered.proxy.protocol.packet.teams.RemoveTeamPacket;
+import com.velocitypowered.proxy.protocol.packet.teams.UpdateTeamPacket;
 import com.velocitypowered.proxy.protocol.packet.title.LegacyTitlePacket;
 import com.velocitypowered.proxy.protocol.packet.title.TitleActionbarPacket;
 import com.velocitypowered.proxy.protocol.packet.title.TitleClearPacket;
@@ -229,6 +234,26 @@ public interface MinecraftSessionHandler {
   }
 
   default boolean handle(ResourcePackResponse packet) {
+    return false;
+  }
+
+  default boolean handle(CreateTeamPacket packet) {
+    return false;
+  }
+
+  default boolean handle(RemoveTeamPacket packet) {
+    return false;
+  }
+
+  default boolean handle(UpdateTeamPacket packet) {
+    return false;
+  }
+
+  default boolean handle(AddEntitiesToTeamPacket packet) {
+    return false;
+  }
+
+  default boolean handle(RemoveEntitiesFromTeamPacket packet) {
     return false;
   }
 }
